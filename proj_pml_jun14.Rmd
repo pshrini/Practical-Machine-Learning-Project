@@ -1,0 +1,58 @@
+---
+title: 'Project: Practical Machine Learning'
+author: "pshrini"
+date: "Sunday, June 22, 2014"
+output: html_document
+---
+
+# **Introduction**
+
+The goal of this exercise is to predict the manner in which the exercise is done based on various sensor measurements. The training and testing data used is
+ http://groupware.les.inf.puc-rio.br/har
+
+# **Procedure/Model Selection**
+
+In the training data there are total 53 relevant measurements found. The dimensionality of the modeling problem being high, PCA was considered to reduce the number of features as pre processing followed by random forest algorithm for model fitting.
+PCA was not found to give any extra benefit compared to using the raw features themselves. 
+Randomforest was chosen assuming non-linearity and automatic feature weightings. This is because randomforest generates the bag of trees with subset of features.
+To make the modeling faster, 4 fold cross validation is used. 
+The intial data is divided into 70% training and 30% for cross validation.
+
+# **Results**
+
+From cross validation it is indicative that the model shows 99% overall accuracy and 98.8% concordance (kappa)
+
+
+```{r}
+# Script for Practical Machine Learning Project Assignment
+# Clearing the workspace
+rm(list= ls())
+# Setting seed
+set.seed(1234)
+# Loading the necessary libraries
+library("caret")
+
+#Get the training data
+data = read.csv('../data//pml-training_new2.csv',header=T)
+
+trainingind = createDataPartition(data$classe,p = 0.7,list=FALSE)
+training = data[trainingind,] # Training Data
+cv = data[-trainingind,] # Cross validation data
+#Train the model
+# Setting train control
+trcntrl = trainControl(method = "cv",number=4)
+trainObj = train(training$classe~.,method="rf",data=training,trControl = trcntrl)
+# Cross Validation
+classpred <- predict(trainObj,cv)
+
+table(classpred,cv$classe)
+confusionMatrix(cv$classe,classpred)
+# Test Data check
+testdata = read.csv('../data/pml-testing_new.csv',header=T)
+testclasspred <- predict(trainObj,testdata)
+# End of code
+```
+
+
+
+
